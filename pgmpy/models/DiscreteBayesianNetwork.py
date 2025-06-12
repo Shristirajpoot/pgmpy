@@ -4,6 +4,8 @@ import itertools
 from collections import defaultdict
 from functools import reduce
 from operator import mul
+import logging
+logger = logging.getLogger(__name__)
 
 import networkx as nx
 import numpy as np
@@ -259,13 +261,15 @@ class DiscreteBayesianNetwork(DAG):
             if set(cpd.scope()) - set(cpd.scope()).intersection(set(self.nodes())):
                 raise ValueError("CPD defined on variable not in the model", cpd)
 
-            for prev_cpd_index in range(len(self.cpds)):
-                if self.cpds[prev_cpd_index].variable == cpd.variable:
-                    logger.warning(f"Replacing existing CPD for {cpd.variable}")
-                    self.cpds[prev_cpd_index] = cpd
-                    break
-            else:
-                self.cpds.append(cpd)
+          for prev_cpd_index in range(len(self.cpds)):
+            if self.cpds[prev_cpd_index].variable == cpd.variable:
+               if self.cpds[prev_cpd_index] == cpd:
+                  logger.warning(f"CPD for '{cpd.variable}' already exists and is identical.")
+               else:
+                  logger.warning(f"Replacing existing CPD for '{cpd.variable}'.")
+              self.cpds[prev_cpd_index] = cpd
+              break
+
 
     def get_cpds(self, node=None):
         """
